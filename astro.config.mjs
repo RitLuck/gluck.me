@@ -7,6 +7,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
     site: 'https://RitLuck.github.io', // or 'https://<your-github-username>.github.io'
+    base: '/gluck.me',
     integrations: [mdx(), sitemap()],
     fonts: [
         {
