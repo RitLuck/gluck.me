@@ -12,6 +12,7 @@ export function getStaticPaths() {
 }
 
 const { category } = Astro.params;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const allPosts = await getCollection('blog');
 
 function getPostDate(post: any): Date | null {
@@ -44,134 +45,137 @@ const years = Object.keys(postsByYear).sort((a, b) => {
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={`${category.toUpperCase()} Posts | Blog`} description={`All ${category} articles`} />
-		<style>
-			html, body {
-				background-color: #050505 !important;
-				color: #e4e4e7;
-				margin: 0;
-			}
+    <head>
+        <BaseHead title={`${category.toUpperCase()} Posts | Blog`} description={`All ${category} articles`} />
+        <style>
+            html, body {
+                background-color: #050505 !important;
+                color: #e4e4e7;
+                margin: 0;
+            }
 
-			main {
-				max-width: 800px;
-				margin: 3rem auto 6rem;
-				padding: 0 1.5rem;
-				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-			}
+            main {
+                max-width: 800px;
+                margin: 3rem auto 6rem;
+                padding: 0 1.5rem;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
 
-			.category-pills {
-				display: flex;
-				gap: 1.5rem;
-				margin-bottom: 4rem;
-				border-bottom: 1px solid #1c1c20;
-				padding-bottom: 1rem;
-			}
+            .category-pills {
+                display: flex;
+                gap: 1.5rem;
+                margin-bottom: 4rem;
+                border-bottom: 1px solid #1c1c20;
+                padding-bottom: 1rem;
+            }
 
-			.pill {
-				color: #71717a;
-				text-decoration: none;
-				font-size: 1.1rem;
-				font-weight: 500;
-				transition: color 0.2s ease;
-			}
+            .pill {
+                color: #71717a;
+                text-decoration: none;
+                font-size: 1.1rem;
+                font-weight: 500;
+                transition: color 0.2s ease;
+            }
 
-			.pill:hover,
-			.pill.active {
-				color: #ffffff;
-			}
+            .pill:hover,
+            .pill.active {
+                color: #ffffff;
+            }
 
-			.year-group {
-				position: relative;
-				margin-bottom: 5rem;
-				padding-top: 2rem;
-			}
+            .year-group {
+                position: relative;
+                margin-bottom: 5rem;
+                padding-top: 2rem;
+            }
 
-			.year-watermark {
-				position: absolute;
-				top: -2.5rem;
-				left: -1rem;
-				font-size: 8rem;
-				font-weight: 900;
-				line-height: 1;
-				color: transparent;
-				-webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.10);
-				user-select: none;
-				z-index: 0;
-				pointer-events: none;
-			}
+            .year-watermark {
+                position: absolute;
+                top: -2.5rem;
+                left: -1rem;
+                font-size: 8rem;
+                font-weight: 900;
+                line-height: 1;
+                color: transparent;
+                -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.10);
+                user-select: none;
+                z-index: 0;
+                pointer-events: none;
+            }
 
-			.posts-list {
-				position: relative;
-				z-index: 1;
-				display: flex;
-				flex-direction: column;
-				gap: 1.25rem;
-			}
+            .posts-list {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 1.25rem;
+            }
 
-			.post-row {
-				display: flex;
-				justify-content: space-between;
-				align-items: baseline;
-				text-decoration: none;
-				gap: 1rem;
-				transition: opacity 0.2s ease;
-			}
+            .post-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                text-decoration: none;
+                gap: 1rem;
+                transition: opacity 0.2s ease;
+            }
 
-			.post-row:hover {
-				opacity: 0.75;
-			}
+            .post-row:hover {
+                opacity: 0.75;
+            }
 
-			.post-title {
-				font-size: 1.1rem;
-				color: #f4f4f5;
-				font-weight: 500;
-				margin: 0;
-			}
+            .post-title {
+                font-size: 1.1rem;
+                color: #f4f4f5;
+                font-weight: 500;
+                margin: 0;
+            }
 
-			.post-meta {
-				display: flex;
-				align-items: center;
-				gap: 1rem;
-				font-size: 0.88rem;
-				color: #71717a;
-				white-space: nowrap;
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="category-pills">
-				<a href="/blog" class="pill">All Posts</a>
-				<a href="/blog/personal" class={`pill ${category === 'personal' ? 'active' : ''}`}>☕ Personal</a>
-				<a href="/blog/technical" class={`pill ${category === 'technical' ? 'active' : ''}`}>💻 Technical</a>
-			</div>
+            .post-meta {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                font-size: 0.88rem;
+                color: #71717a;
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <Header />
+        <main>
+            <div class="category-pills">
+                <a href={`${base}/blog`} class="pill">All Posts</a>
+                <a href={`${base}/blog/personal`} class={`pill ${category === 'personal' ? 'active' : ''}`}>☕ Personal</a>
+                <a href={`${base}/blog/technical`} class={`pill ${category === 'technical' ? 'active' : ''}`}>💻 Technical</a>
+            </div>
 
-			{years.map(year => (
-				<section class="year-group">
-					<div class="year-watermark">{year}</div>
-					<div class="posts-list">
-						{postsByYear[year].map(post => {
-							const cleanSlug = post.id.replace(/\/index\.md$/, '').replace(/\.md$/, '');
-							const postDate = getPostDate(post);
-							const formattedDate = postDate 
-								? postDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-								: '';
+            {years.map(year => (
+                <section class="year-group">
+                    <div class="year-watermark">{year}</div>
+                    <div class="posts-list">
+                        {postsByYear[year].map(post => {
+                            const cleanSlug = post.id
+                                .replace(/\/index\.md$/, '')
+                                .replace(/\.md$/, '')
+                                .replace(/\/$/, '');
+                            const postDate = getPostDate(post);
+                            const formattedDate = postDate 
+                                ? postDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                : '';
 
-							return (
-								<a href={`/blog/${cleanSlug}`} class="post-row">
-									<h2 class="post-title">{post.data.title}</h2>
-									<div class="post-meta">
-										<time>{formattedDate}</time>
-									</div>
-								</a>
-							);
-						})}
-					</div>
-				</section>
-			))}
-		</main>
-		<Footer />
-	</body>
+                            return (
+                                <a href={`${base}/blog/${cleanSlug}/`} class="post-row">
+                                    <h2 class="post-title">{post.data.title}</h2>
+                                    <div class="post-meta">
+                                        <time>{formattedDate}</time>
+                                    </div>
+                                </a>
+                            );
+                        })}
+                    </div>
+                </section>
+            ))}
+        </main>
+        <Footer />
+    </body>
 </html>
