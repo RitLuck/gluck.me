@@ -1,20 +1,46 @@
-import { defineCollection } from 'astro:content';
+import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { z } from 'astro/zod';
 
-const blog = defineCollection({
-	// Load Markdown and MDX files in the `src/content/blog/` directory.
-	loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
-	// Type-check frontmatter using a schema
-	schema: ({ image }) =>
-		z.object({
-			title: z.string(),
-			description: z.string(),
-			// Transform string to Date object
-			pubDate: z.coerce.date(),
-			updatedDate: z.coerce.date().optional(),
-			heroImage: z.optional(image()),
-		}),
+const about = defineCollection({
+    loader: glob({ pattern: '**/*.md', base: './src/content/about' }),
+    schema: z.object({
+        title: z.string().optional().default('Whoami'),
+        date: z.union([z.coerce.date(), z.string()]).optional(),
+    }),
 });
 
-export const collections = { blog };
+const blog = defineCollection({
+    loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
+    schema: z.object({
+        title: z.string().optional().default('Untitled Post'),
+        description: z.string().optional(),
+        pubDate: z.union([z.coerce.date(), z.string()]).optional(),
+        date: z.union([z.coerce.date(), z.string()]).optional(),
+        updatedDate: z.union([z.coerce.date(), z.string()]).optional(),
+        heroImage: z.string().optional(),
+    }),
+});
+
+const photos = defineCollection({
+    loader: glob({ pattern: '**/[^_]*.json', base: './src/content/photos' }),
+    schema: z.array(
+        z.object({
+            id: z.string(),
+            lat: z.number(),
+            lng: z.number(),
+            date: z.string(),
+            title: z.string().optional(),
+            thumbnails: z.array(z.string()),
+        })
+    ),
+});
+
+const myList = defineCollection({
+    loader: glob({ pattern: 'index.md', base: './src/content/my_list' }),
+    schema: z.object({
+        title: z.string(),
+    }),
+});
+
+// Added 'about' here 
+export const collections = { blog, photos, myList, about };
