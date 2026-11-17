@@ -1,59 +1,540 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import BackgroundCanvas from '../components/BackgroundCanvas.astro';
+import MascotGif from '../components/MascotGif.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .sort((a, b) => {
+    const dateA = a.data.pubDate ? new Date(a.data.pubDate).getTime() : 0;
+    const dateB = b.data.pubDate ? new Date(b.data.pubDate).getTime() : 0;
+    return dateB - dateA;
+  })
+  .slice(0, 5);
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to
-				build a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your{' '}
-				<code>astro.config.mjs</code> file. You can customize your setup with{' '}
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like
-				Tailwind, React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>
-					Edit this page in <code>src/pages/index.astro</code>
-				</li>
-				<li>
-					Edit the site header items in <code>src/components/Header.astro</code>
-				</li>
-				<li>
-					Add your name to the footer in <code>src/components/Footer.astro</code>
-				</li>
-				<li>
-					Check out the included blog posts in <code>src/content/blog/</code>
-				</li>
-				<li>
-					Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code>
-				</li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to{' '}
-				<a href="https://docs.astro.build/">read the docs</a> or{' '}
-				<a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out{' '}
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a> by{' '}
-				<a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+    <head>
+        <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600&display=swap');
+
+            :root {
+                --bg: #0b0c10;
+                --card-bg: #151722;
+                --border: #232636;
+                --text-main: #e2e8f0;
+                --text-muted: #94a3b8;
+                --accent: #818cf8;
+            }
+
+            body {
+                background-color: var(--bg);
+                color: var(--text-main);
+                margin: 0;
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                -webkit-font-smoothing: antialiased;
+                position: relative;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .page-layout {
+                max-width: 960px;
+                width: 100%;
+                margin: 0 auto;
+                padding: 3.5rem 1.5rem 5rem;
+                display: flex;
+                gap: 3.5rem;
+                flex: 1;
+                box-sizing: border-box;
+            }
+
+            @media (max-width: 768px) {
+                .page-layout {
+                    flex-direction: column;
+                    gap: 2rem;
+                    padding: 2rem 1rem 4rem;
+                }
+            }
+
+            /* --- Sidebar --- */
+            .sidebar {
+                width: 180px;
+                flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            @media (max-width: 768px) {
+                .sidebar {
+                    width: 100%;
+                }
+            }
+
+            .sidebar-avatar {
+                width: 100%;
+                height: 160px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                object-fit: cover;
+                background: #181a26;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                font-family: 'Pixelify Sans', monospace;
+                font-size: 1.05rem;
+            }
+
+            .nav-link {
+                color: var(--text-muted);
+                text-decoration: none;
+                transition: color 0.15s ease, transform 0.15s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+            }
+
+            .nav-link:hover {
+                color: var(--text-main);
+                transform: translateX(3px);
+            }
+
+            .nav-link.active {
+                color: var(--accent);
+                font-weight: 600;
+            }
+
+            .sub-nav {
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+                padding-left: 1rem;
+                font-size: 0.95rem;
+            }
+
+            /* --- Main Content Area --- */
+            .main-content {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 2.2rem;
+            }
+
+            .intro-header h1 {
+                font-family: 'Pixelify Sans', monospace;
+                font-size: 2.2rem;
+                font-weight: 600;
+                margin: 0 0 1rem 0;
+                color: #ffffff;
+                letter-spacing: -0.01em;
+                -webkit-font-smoothing: none;
+                font-smooth: never;
+            }
+
+            /* --- Terminal Card Shell --- */
+            .terminal-card {
+                background: #0c0e14;
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+
+            .terminal-header {
+                background: #161826;
+                padding: 0.65rem 1rem;
+                display: flex;
+                align-items: center;
+                position: relative;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .terminal-dots {
+                display: flex;
+                gap: 0.45rem;
+            }
+
+            .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .dot.red { background: #ff5f56; }
+            .dot.yellow { background: #ffbd2e; }
+            .dot.green { background: #27c93f; }
+
+            .terminal-title {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+
+            .terminal-body {
+                padding: 1.25rem;
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 0.92rem;
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+                min-height: 170px;
+                box-sizing: border-box;
+            }
+
+            /* --- Content Cards --- */
+            .card {
+                background: var(--card-bg);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1.5rem;
+            }
+
+            .card h2 {
+                font-family: 'Pixelify Sans', monospace;
+                font-size: 1.35rem;
+                margin: 0 0 1rem 0;
+                color: #ffffff;
+            }
+
+            .card-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .card-list li {
+                color: var(--text-muted);
+                font-size: 0.95rem;
+                line-height: 1.5;
+            }
+
+            .card-list li strong {
+                color: var(--text-main);
+            }
+
+            .section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                margin-bottom: 1rem;
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 0.5rem;
+            }
+
+            .section-title {
+                font-size: 0.85rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--text-muted);
+            }
+
+            .see-all {
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                text-decoration: none;
+                transition: color 0.15s ease;
+            }
+
+            .see-all:hover {
+                color: var(--accent);
+            }
+
+            .post-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .post-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                text-decoration: none;
+                color: var(--text-main);
+                gap: 1rem;
+            }
+
+            .post-item:hover .post-title {
+                color: var(--accent);
+            }
+
+            .post-title {
+                font-weight: 500;
+                font-size: 0.95rem;
+            }
+
+            .post-date {
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                font-family: ui-monospace, monospace;
+            }
+        </style>
+
+        <style is:global>
+            .terminal-line {
+                display: flex;
+                align-items: baseline;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .prompt-text {
+                color: #34d399 !important;
+                font-weight: 600 !important;
+            }
+
+            .terminal-cmd {
+                color: #ffffff !important;
+                font-weight: 500 !important;
+            }
+
+            .terminal-output {
+                color: #cbd5e1 !important;
+                font-weight: 400 !important;
+            }
+
+            .cursor {
+                display: inline-block;
+                width: 8px;
+                height: 15px;
+                background-color: #34d399 !important;
+                margin-left: 2px;
+                vertical-align: middle;
+                animation: blink 1s step-start infinite;
+            }
+
+            @keyframes blink {
+                50% { opacity: 0; }
+            }
+        </style>
+    </head>
+    <body>
+        <BackgroundCanvas />
+
+        <div class="page-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <img 
+                    class="sidebar-avatar" 
+                    src="/avatar.png" 
+                    alt="Girish Luckhun" 
+                    onerror="this.src='/banner.png';"
+                />
+
+                <nav class="sidebar-nav">
+                    <a href="/" class="nav-link active">&gt; home</a>
+                    <a href="/blog" class="nav-link">blog</a>
+                    <div class="sub-nav">
+                        <a href="/blog/technical" class="nav-link">├ technical</a>
+                        <a href="/blog/personal" class="nav-link">└ personal</a>
+                    </div>
+                    <a href="/explory" class="nav-link">./photography</a>
+                    <a href="/my-list" class="nav-link">./my list</a>
+                    <a href="/about" class="nav-link">whoami</a>
+                </nav>
+
+                <!-- Mascot placed inside sidebar below nav links -->
+                <MascotGif />
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <section class="intro-header">
+                    <h1>Welcome to my small corner of the web!</h1>
+
+                    <!-- Dynamic Terminal Card -->
+                    <div class="terminal-card">
+                        <div class="terminal-header">
+                            <div class="terminal-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <span class="terminal-title">bash</span>
+                        </div>
+                        <div class="terminal-body" id="terminal-body">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Overview Card -->
+                <section class="card">
+                    <h2>What's here</h2>
+                    <ul class="card-list">
+                        <li><strong>blog</strong> — technical notes, AWS cloud guides, and personal writeups</li>
+                        <li><strong>photography</strong> — interactive photo maps and travel logs</li>
+                        <li><strong>my list</strong> — tracking media, anime, manga, and tech stack tools</li>
+                        <li><strong>whoami</strong> — background details, projects, and contact links</li>
+                    </ul>
+                </section>
+
+                <!-- Recent Posts Stream -->
+                <section class="card">
+                    <div class="section-header">
+                        <span class="section-title">Recent Posts</span>
+                        <a href="/blog" class="see-all">All articles &rarr;</a>
+                    </div>
+
+                    <div class="post-list">
+                        {posts.map((post) => (
+                            <a href={`/blog/${post.slug}/`} class="post-item">
+                                <span class="post-title">{post.data.title}</span>
+                                <time class="post-date" datetime={post.data.pubDate ? new Date(post.data.pubDate).toISOString() : ''}>
+                                    {post.data.pubDate 
+                                        ? new Date(post.data.pubDate).toLocaleDateString('en-us', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                            })
+                                        : 'Undated'}
+                                </time>
+                            </a>
+                        ))}
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <Footer />
+
+        <!-- Terminal Execution Loop Script -->
+        <script is:inline>
+            (function () {
+                const cmd1Text = "./bio.sh";
+                const out1Text = "🎧 cloud engineer (aws, sysops) @ TeamWork Ltd, Mauritius";
+                const out2Text = "💙 huge Ado fan, badminton player, anime, manga, kdrama,";
+                const out3Text = "Currently learning Japanese 🇯🇵";
+                const cmd2Text = "clear";
+
+                let activeInstanceId = 0;
+
+                async function runTerminalScript() {
+                    const instanceId = ++activeInstanceId;
+                    const container = document.getElementById('terminal-body');
+                    if (!container) return;
+
+                    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+                    while (instanceId === activeInstanceId) {
+                        container.innerHTML = '';
+
+                        function createPromptLine() {
+                            const line = document.createElement('div');
+                            line.className = 'terminal-line';
+
+                            const promptSpan = document.createElement('span');
+                            promptSpan.className = 'prompt-text';
+                            promptSpan.textContent = 'girish:~$';
+
+                            const cmdSpan = document.createElement('span');
+                            cmdSpan.className = 'terminal-cmd';
+
+                            const cursor = document.createElement('span');
+                            cursor.className = 'cursor';
+
+                            line.appendChild(promptSpan);
+                            line.appendChild(cmdSpan);
+                            line.appendChild(cursor);
+
+                            container.appendChild(line);
+                            return { line, cmdSpan, cursor };
+                        }
+
+                        function createOutputLine() {
+                            const line = document.createElement('div');
+                            line.className = 'terminal-line';
+
+                            const outputSpan = document.createElement('span');
+                            outputSpan.className = 'terminal-output';
+
+                            const cursor = document.createElement('span');
+                            cursor.className = 'cursor';
+
+                            line.appendChild(outputSpan);
+                            line.appendChild(cursor);
+
+                            container.appendChild(line);
+                            return { line, outputSpan, cursor };
+                        }
+
+                        // 1. Type command: ./bio.sh
+                        const line1 = createPromptLine();
+                        for (let i = 0; i < cmd1Text.length; i++) {
+                            if (instanceId !== activeInstanceId) return;
+                            line1.cmdSpan.textContent += cmd1Text.charAt(i);
+                            await sleep(50);
+                        }
+                        await sleep(350);
+                        line1.cursor.remove();
+
+                        // 2. Print Output Line 1
+                        const line2 = createOutputLine();
+                        for (let i = 0; i < out1Text.length; i++) {
+                            if (instanceId !== activeInstanceId) return;
+                            line2.outputSpan.textContent += out1Text.charAt(i);
+                            await sleep(20);
+                        }
+                        line2.cursor.remove();
+
+                        // 3. Print Output Line 2
+                        const line3 = createOutputLine();
+                        for (let i = 0; i < out2Text.length; i++) {
+                            if (instanceId !== activeInstanceId) return;
+                            line3.outputSpan.textContent += out2Text.charAt(i);
+                            await sleep(20);
+                        }
+                        line3.cursor.remove();
+
+                        // 4. Print Output Line 3
+                        const line4 = createOutputLine();
+                        for (let i = 0; i < out3Text.length; i++) {
+                            if (instanceId !== activeInstanceId) return;
+                            line4.outputSpan.textContent += out3Text.charAt(i);
+                            await sleep(20);
+                        }
+                        line4.cursor.remove();
+
+                        // Pause to read output
+                        await sleep(4500);
+
+                        // 5. Type command: clear
+                        const line5 = createPromptLine();
+                        for (let i = 0; i < cmd2Text.length; i++) {
+                            if (instanceId !== activeInstanceId) return;
+                            line5.cmdSpan.textContent += cmd2Text.charAt(i);
+                            await sleep(65);
+                        }
+                        await sleep(500);
+                    }
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', runTerminalScript);
+                } else {
+                    runTerminalScript();
+                }
+                document.addEventListener('astro:page-load', runTerminalScript);
+            })();
+        </script>
+    </body>
 </html>

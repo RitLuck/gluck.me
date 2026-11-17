@@ -1,111 +1,200 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
-import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import Footer from '../../components/Footer.astro';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await getCollection('blog');
+
+// Robust date extractor that handles raw string dates AND folder paths (e.g. personal/2026/02/index.md)
+function getPostDate(post: any): Date | null {
+  const raw = post.data.pubDate || post.data.date;
+  if (raw) {
+    const parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  // Fallback: Extract year and month directly from post.id path (e.g., personal/2026/02/...)
+  const pathParts = post.id.split('/');
+  if (pathParts.length >= 3) {
+    const year = parseInt(pathParts[1], 10);
+    const month = parseInt(pathParts[2], 10);
+    if (!isNaN(year) && !isNaN(month)) {
+      return new Date(year, month - 1, 1);
+    }
+  }
+
+  return null;
+}
+
+// 1. Sort posts descending (latest date at top)
+const sortedPosts = posts
+  .filter(post => post.id.includes('/'))
+  .sort((a, b) => {
+    const timeA = getPostDate(a)?.getTime() || 0;
+    const timeB = getPostDate(b)?.getTime() || 0;
+    return timeB - timeA;
+  });
+
+// 2. Group posts by Year
+const postsByYear = sortedPosts.reduce((acc, post) => {
+  const postDate = getPostDate(post);
+  const year = postDate ? postDate.getFullYear().toString() : 'Archive';
+  if (!acc[year]) acc[year] = [];
+  acc[year].push(post);
+  return acc;
+}, {} as Record<string, typeof sortedPosts>);
+
+// Sort years descending (2026, 2025, 2024...)
+const years = Object.keys(postsByYear).sort((a, b) => {
+  if (a === 'Archive') return 1;
+  if (b === 'Archive') return -1;
+  return Number(b) - Number(a);
+});
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title="Blog | Articles" description="Personal & Technical Writings" />
 		<style>
+			html, body {
+				background-color: #050505 !important;
+				color: #e4e4e7;
+				margin: 0;
+			}
+
 			main {
-				width: 960px;
+				max-width: 800px;
+				margin: 3rem auto 6rem;
+				padding: 0 1.5rem;
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 			}
-			ul {
+
+			.category-pills {
 				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
+				gap: 1.5rem;
+				margin-bottom: 4rem;
+				border-bottom: 1px solid #1c1c20;
+				padding-bottom: 1rem;
 			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
+
+			.pill {
+				color: #71717a;
 				text-decoration: none;
-				transition: 0.2s ease;
+				font-size: 1.1rem;
+				font-weight: 500;
+				transition: color 0.2s ease;
 			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
+
+			.pill:hover,
+			.pill.active {
+				color: #ffffff;
 			}
-			ul li:first-child img {
-				width: 100%;
+
+			.year-group {
+				position: relative;
+				margin-bottom: 5rem;
+				padding-top: 2rem;
 			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
+
+			.year-watermark {
+				position: absolute;
+				top: -2.5rem;
+				left: -1rem;
+				font-size: 8rem;
+				font-weight: 900;
 				line-height: 1;
+				color: transparent;
+				-webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.10);
+				user-select: none;
+				z-index: 0;
+				pointer-events: none;
 			}
-			.date {
+
+			.posts-list {
+				position: relative;
+				z-index: 1;
+				display: flex;
+				flex-direction: column;
+				gap: 1.25rem;
+			}
+
+			.post-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: baseline;
+				text-decoration: none;
+				gap: 1rem;
+				transition: opacity 0.2s ease;
+			}
+
+			.post-row:hover {
+				opacity: 0.75;
+			}
+
+			.post-title {
+				font-size: 1.1rem;
+				color: #f4f4f5;
+				font-weight: 500;
 				margin: 0;
-				color: rgb(var(--gray));
 			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
+
+			.post-meta {
+				display: flex;
+				align-items: center;
+				gap: 1rem;
+				font-size: 0.88rem;
+				color: #71717a;
+				white-space: nowrap;
 			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
+
+			.tag-badge {
+				font-size: 0.75rem;
+				color: #a1a1aa;
+				background: rgba(255, 255, 255, 0.05);
+				padding: 0.15rem 0.5rem;
+				border-radius: 4px;
+				border: 1px solid rgba(255, 255, 255, 0.08);
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{posts.map((post) => (
-						<li>
-							<a href={`/blog/${post.id}/`}>
-								{post.data.heroImage && (
-									<Image width={720} height={360} src={post.data.heroImage} alt="" />
-								)}
-								<h4 class="title">{post.data.title}</h4>
-								<p class="date">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
-							</a>
-						</li>
-					))}
-				</ul>
-			</section>
+			<div class="category-pills">
+				<a href="/blog" class="pill active">All Posts</a>
+				<a href="/blog/personal" class="pill">☕ Personal</a>
+				<a href="/blog/technical" class="pill">💻 Technical</a>
+			</div>
+
+			{years.map(year => (
+				<section class="year-group">
+					<div class="year-watermark">{year}</div>
+					<div class="posts-list">
+						{postsByYear[year].map(post => {
+							const category = post.id.startsWith('personal') ? 'Personal' : 'Technical';
+							const cleanSlug = post.id.replace(/\/index\.md$/, '').replace(/\.md$/, '');
+							const postDate = getPostDate(post);
+							const formattedDate = postDate 
+								? postDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+								: '';
+
+							return (
+								<a href={`/blog/${cleanSlug}`} class="post-row">
+									<div style="display: flex; align-items: center; gap: 0.75rem;">
+										<h2 class="post-title">{post.data.title}</h2>
+										<span class="tag-badge">{category}</span>
+									</div>
+									<div class="post-meta">
+										<time>{formattedDate}</time>
+									</div>
+								</a>
+							);
+						})}
+					</div>
+				</section>
+			))}
 		</main>
 		<Footer />
 	</body>

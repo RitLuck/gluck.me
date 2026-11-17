@@ -1,20 +1,167 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content';
-import BlogPost from '../../layouts/BlogPost.astro';
+import { getCollection, render } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
+  const posts = await getCollection('blog');
+  return posts.map(post => {
+    // Fixed typo in regex (\vert{} -> |)
+    const slug = post.id.replace(/\/index\.(md|mdx)$/, '').replace(/\.(md\vert{}mdx)$/, '');
+    return {
+      params: { slug },
+      props: { post },
+    };
+  });
 }
-type Props = CollectionEntry<'blog'>;
 
-const post = Astro.props;
+const { post } = Astro.props;
 const { Content } = await render(post);
+const isTechnical = post.id.startsWith('technical');
+
+// Load co-located video asset URLs directly into Vite's module map
+const videos = import.meta.glob<{ default: string }>('/src/content/blog/**/*.{mp4,webm}', { eager: true });
+const videoMap = Object.fromEntries(
+  Object.entries(videos).map(([path, module]) => [path.replace('/src/content/blog/', ''), module.default])
+);
 ---
 
-<BlogPost {...post.data}>
-	<Content />
-</BlogPost>
+<!doctype html>
+<html lang="en">
+    <head>
+        <BaseHead title={post.data.title} description={post.data.description || ''} />
+        <style>
+            body {
+                background-color: #0b0b0e;
+                color: #e4e4e7;
+                margin: 0;
+            }
+
+            main {
+                max-width: 820px;
+                margin: 3rem auto;
+                padding: 0 1.5rem;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            }
+
+            .article-container {
+                background: #121215;
+                border: 1px solid #27272a;
+                border-radius: 16px;
+                padding: 2.5rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+
+            .article-container.technical-mode {
+                background: transparent;
+                border: none;
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .prose {
+                color: #d4d4d8;
+                line-height: 1.8;
+                font-size: 1.05rem;
+            }
+
+            .prose :global(h1) {
+                color: #ffffff !important;
+                font-size: 2.25rem;
+                font-weight: 700;
+                margin-top: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .prose :global(h2) {
+                color: #f4f4f5 !important;
+                font-size: 1.6rem;
+                font-weight: 600;
+                margin-top: 2rem;
+                margin-bottom: 0.85rem;
+                border-bottom: 1px solid #27272a;
+                padding-bottom: 0.4rem;
+            }
+
+            .prose :global(h3) {
+                color: #e4e4e7 !important;
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-top: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .prose :global(p) {
+                color: #d4d4d8 !important;
+                margin-bottom: 1.25rem;
+            }
+
+            .prose :global(img) {
+                max-width: 50%;
+                height: auto;
+                border-radius: 12px;
+                margin: 1.5rem auto;
+                display: block;
+                border: 1px solid #27272a;
+            }
+
+            .prose :global(video) {
+                max-width: 100%;
+                height: auto;
+                border-radius: 12px;
+                margin: 1.5rem 0;
+                border: 1px solid #27272a;
+            }
+
+            .post-meta {
+                color: #71717a;
+                font-size: 0.9rem;
+                margin-bottom: 2rem;
+            }
+        </style>
+    </head>
+    <body>
+        <Header />
+        <main>
+            <article class={`article-container ${isTechnical ? 'technical-mode' : ''}`}>
+                <div class="prose">
+                    <h1>{post.data.title}</h1>
+                    {post.data.pubDate && (
+                        <div class="post-meta">
+                            <time>{new Date(post.data.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
+                        </div>
+                    )}
+                    <Content />
+                </div>
+            </article>
+        </main>
+        <Footer />
+
+        <!-- Client script to map data-src relative paths to Vite bundled URLs -->
+        <script is:inline define:vars={{ videoMap, postId: post.id }}>
+            document.addEventListener('DOMContentLoaded', () => {
+                const sources = document.querySelectorAll('video source[data-src]');
+                
+                let baseDir = '';
+                if (postId.endsWith('index.md') || postId.endsWith('index.mdx')) {
+                    baseDir = postId.substring(0, postId.lastIndexOf('/') + 1);
+                } else {
+                    baseDir = postId.includes('/') ? postId.substring(0, postId.lastIndexOf('/') + 1) : '';
+                }
+
+                sources.forEach((source) => {
+                    const rawSrc = source.getAttribute('data-src');
+                    if (rawSrc) {
+                        const cleanFileName = rawSrc.replace(/^(\.\/)?images\//, '');
+                        const lookupKey = `${baseDir}images/${cleanFileName}`;
+                        if (videoMap[lookupKey]) {
+                            source.src = videoMap[lookupKey];
+                            source.parentElement.load();
+                        }
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

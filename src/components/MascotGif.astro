@@ -1,0 +1,28 @@
+---
+// src/components/MascotGif.astro
+---
+
+<div class="sidebar-mascot">
+    <img 
+        src="/mascot.gif" 
+        alt="Ado Mascot" 
+        class="mascot-img" 
+        onerror="this.style.display='none';"
+    />
+</div>
+
+<style>
+    .sidebar-mascot {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .mascot-img {
+        width: 110px;
+        height: auto;
+        display: block;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    }
+</style>

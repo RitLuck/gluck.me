@@ -1,0 +1,22 @@
+---
+interface Props {
+  src?: string;
+  type?: string;
+}
+
+const { src, type = 'video/mp4' } = Astro.props;
+
+// Vite dynamically loads all videos under src/content/blog/
+const videos = import.meta.glob<{ default: string }>('/src/content/blog/**/*.{mp4,webm}', { eager: true });
+
+let resolvedSrc = src;
+if (src && (src.startsWith('./images/') || src.startsWith('images/'))) {
+  const fileName = src.replace(/^(\.\/)?images\//, '');
+  const matchKey = Object.keys(videos).find(k => k.endsWith(`images/${fileName}`));
+  if (matchKey && videos[matchKey]) {
+    resolvedSrc = videos[matchKey].default;
+  }
+}
+---
+
+<source src={resolvedSrc} type={type} />

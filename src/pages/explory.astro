@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import ExploryMap from '../components/ExploryMap.astro';
+import { SITE_TITLE } from '../consts';
+
+const photosCollection = await getCollection('photos');
+const photosData = photosCollection.flatMap(entry => 
+  Array.isArray(entry.data) ? entry.data : [entry.data]
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Explory Map | ${SITE_TITLE}`} description="Interactive photo map" />
+		<style>
+			html, body {
+				margin: 0;
+				padding: 0;
+				width: 100vw;
+				height: 100vh;
+				overflow: hidden;
+				background-color: #0f0f11;
+			}
+		</style>
+	</head>
+	<body>
+		<ExploryMap photosData={photosData} />
+	</body>
+</html>

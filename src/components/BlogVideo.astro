@@ -1,0 +1,40 @@
+---
+interface Props {
+  src: string;
+  controls?: boolean;
+  width?: string;
+  preload?: string;
+  style?: string;
+}
+
+const { 
+  src, 
+  controls = true, 
+  width = '100%', 
+  preload = 'metadata',
+  style = 'border-radius: 12px; margin: 1.5rem 0;' 
+} = Astro.props;
+
+// Vite dynamically loads all videos under src/content/blog/
+const videos = import.meta.glob<{ default: string }>('/src/content/blog/**/*.{mp4,webm}', { eager: true });
+
+let resolvedSrc = src;
+
+if (src && (src.startsWith('./images/') || src.startsWith('images/'))) {
+  const fileName = src.replace(/^(\.\/)?images\//, '');
+  const matchKey = Object.keys(videos).find((k) => k.endsWith(`images/${fileName}`));
+  if (matchKey && videos[matchKey]) {
+    resolvedSrc = videos[matchKey].default;
+  }
+}
+---
+
+<video
+  controls={controls}
+  width={width}
+  preload={preload}
+  style={style}
+>
+  <source src={resolvedSrc} type="video/mp4" />
+  Your browser does not support the video tag.
+</video>

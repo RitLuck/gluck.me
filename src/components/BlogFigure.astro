@@ -1,0 +1,31 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  caption?: string;
+  width?: string;
+  style?: string;
+}
+
+const { src, alt, caption, width = '100%', style = '' } = Astro.props;
+
+// Vite dynamically loads all images under src/content/blog/
+const images = import.meta.glob<{ default: string }>('/src/content/blog/**/*.{png,jpg,jpeg,gif,webp,avif,svg}', { eager: true });
+
+let resolvedSrc = src;
+if (src && (src.startsWith('./images/') || src.startsWith('images/'))) {
+  const fileName = src.replace(/^(\.\/)?images\//, '');
+  const matchKey = Object.keys(images).find(k => k.endsWith(`images/${fileName}`));
+  if (matchKey && images[matchKey]) {
+    resolvedSrc = images[matchKey].default;
+  }
+}
+
+const imgStyle = `max-width: ${width}; height: auto; border-radius: 12px; border: 1px solid #27272a; margin: 0 auto; display: block;${style ? ' ' + style : ''}`;
+const figStyle = `text-align: center; margin: 1.5rem auto;`;
+---
+
+<figure style={figStyle}>
+  <img src={resolvedSrc} alt={caption || alt || ''} style={imgStyle} />
+  {caption && <figcaption style="color: #71717a; font-size: 0.85rem; margin-top: 0.4rem;">{caption}</figcaption>}
+</figure>
