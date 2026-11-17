@@ -1,23 +1,25 @@
 ---
 import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <header class="glass-header">
 	<nav>
 		<div class="brand">
-			<h2><a href="/">{SITE_TITLE}</a></h2>
+			<h2><a href={`${base}/`}>{SITE_TITLE}</a></h2>
 		</div>
-		
+
 		<div class="internal-links">
 			<HeaderLink href="/">🏠 Home</HeaderLink>
-			
+
 			<!-- Blog Dropdown (Technical & Personal) -->
 			<div class="dropdown">
 				<HeaderLink href="/blog" class="dropdown-trigger">📝 Blog ▾</HeaderLink>
 				<div class="dropdown-menu">
-					<a href="/blog/technical">💻 Technical</a>
-					<a href="/blog/personal">☕ Personal</a>
+					<a href={`${base}/blog/technical`}>💻 Technical</a>
+					<a href={`${base}/blog/personal`}>☕ Personal</a>
 				</div>
 			</div>
 

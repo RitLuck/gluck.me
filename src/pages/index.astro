@@ -6,6 +6,8 @@ import MascotGif from '../components/MascotGif.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { getCollection } from 'astro:content';
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 const posts = (await getCollection('blog'))
   .sort((a, b) => {
     const dateA = a.data.pubDate ? new Date(a.data.pubDate).getTime() : 0;
@@ -44,6 +46,8 @@ const posts = (await getCollection('blog'))
             }
 
             .page-layout {
+                position: relative;
+                z-index: 1;
                 max-width: 960px;
                 width: 100%;
                 margin: 0 auto;
@@ -332,29 +336,28 @@ const posts = (await getCollection('blog'))
 
         <div class="page-layout">
             <!-- Sidebar Navigation -->
-            <aside class="sidebar">
-                <img 
-                    class="sidebar-avatar" 
-                    src="/avatar.png" 
-                    alt="Girish Luckhun" 
-                    onerror="this.src='/banner.png';"
-                />
+                <aside class="sidebar">
+                    <img 
+                        class="sidebar-avatar" 
+                        src={`${base}/avatar.png`} 
+                        alt="Girish Luckhun" 
+                        onerror={`this.src='${base}/banner.png';`}
+                    />
 
-                <nav class="sidebar-nav">
-                    <a href="/" class="nav-link active">&gt; home</a>
-                    <a href="/blog" class="nav-link">blog</a>
-                    <div class="sub-nav">
-                        <a href="/blog/technical" class="nav-link">├ technical</a>
-                        <a href="/blog/personal" class="nav-link">└ personal</a>
-                    </div>
-                    <a href="/explory" class="nav-link">./photography</a>
-                    <a href="/my-list" class="nav-link">./my list</a>
-                    <a href="/about" class="nav-link">whoami</a>
-                </nav>
+                    <nav class="sidebar-nav">
+                        <a href={`${base}/`} class="nav-link active">&gt; home</a>
+                        <a href={`${base}/blog`} class="nav-link">blog</a>
+                        <div class="sub-nav">
+                            <a href={`${base}/blog/technical`} class="nav-link">├ technical</a>
+                            <a href={`${base}/blog/personal`} class="nav-link">└ personal</a>
+                        </div>
+                        <a href={`${base}/explory`} class="nav-link">./photography</a>
+                        <a href={`${base}/my-list`} class="nav-link">./my list</a>
+                        <a href={`${base}/about`} class="nav-link">whoami</a>
+                    </nav>
 
-                <!-- Mascot placed inside sidebar below nav links -->
-                <MascotGif />
-            </aside>
+                    <MascotGif />
+                </aside>
 
             <!-- Main Content Area -->
             <main class="main-content">
@@ -387,31 +390,30 @@ const posts = (await getCollection('blog'))
                         <li><strong>whoami</strong> — background details, projects, and contact links</li>
                     </ul>
                 </section>
-
                 <!-- Recent Posts Stream -->
-                <section class="card">
-                    <div class="section-header">
-                        <span class="section-title">Recent Posts</span>
-                        <a href="/blog" class="see-all">All articles &rarr;</a>
-                    </div>
+                                <section class="card">
+                                    <div class="section-header">
+                                        <span class="section-title">Recent Posts</span>
+                                        <a href={`${base}/blog`} class="see-all">All articles &rarr;</a>
+                                    </div>
 
-                    <div class="post-list">
-                        {posts.map((post) => (
-                            <a href={`/blog/${post.slug}/`} class="post-item">
-                                <span class="post-title">{post.data.title}</span>
-                                <time class="post-date" datetime={post.data.pubDate ? new Date(post.data.pubDate).toISOString() : ''}>
-                                    {post.data.pubDate 
-                                        ? new Date(post.data.pubDate).toLocaleDateString('en-us', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric',
-                                            })
-                                        : 'Undated'}
-                                </time>
-                            </a>
-                        ))}
-                    </div>
-                </section>
+                                    <div class="post-list">
+                                        {posts.map((post) => (
+                                            <a href={`${base}/blog/${post.slug}/`} class="post-item">
+                                                <span class="post-title">{post.data.title}</span>
+                                                <time class="post-date" datetime={post.data.pubDate ? new Date(post.data.pubDate).toISOString() : ''}>
+                                                    {post.data.pubDate 
+                                                        ? new Date(post.data.pubDate).toLocaleDateString('en-us', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                            })
+                                                        : 'Undated'}
+                                                </time>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </section>
             </main>
         </div>
 
