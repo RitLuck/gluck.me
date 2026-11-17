@@ -33,10 +33,12 @@ const { photosData } = Astro.props;
     }).setView([35.3060, 139.4827], 6);
 
     // 100% Free Dark Map Tiles (No API Key / No Watermarks)
-        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 20
-        }).addTo(map);
+        // Free Dark Map Tiles (No API Key / Works on any domain)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
 
     // Force map to recalculate bounds and eliminate grey bottom area
     setTimeout(() => {
